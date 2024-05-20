@@ -5,3 +5,6 @@
 !synthesis_planning/*
 !goal_directed
 !goal_directed/*
+!sbdd
+!sbdd/*
+!sbdd/**

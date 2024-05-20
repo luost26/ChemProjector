@@ -1,0 +1,11 @@
+bounding_box_size:
+- 8.192999999999998
+- 6.85
+- 7.65
+center_of_mass:
+- -17.680322647094727
+- -4.990041255950928
+- 1.059964656829834
+pdbcode: 5fv7
+target_name: FEN1
+total_mass: 332.337

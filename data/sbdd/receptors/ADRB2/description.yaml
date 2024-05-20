@@ -1,0 +1,11 @@
+bounding_box_size:
+- 11.208
+- 9.997
+- 14.994
+center_of_mass:
+- -9.845024108886719
+- -4.321293354034424
+- 39.35286331176758
+pdbcode: 6mxt
+target_name: ADRB2
+total_mass: 416.58200000000016

@@ -1,0 +1,11 @@
+bounding_box_size:
+- 13.16
+- 10.515
+- 9.242
+center_of_mass:
+- 8.607589721679688
+- 3.8615543842315674
+- 12.589625358581543
+pdbcode: 5x1w
+target_name: PKM2
+total_mass: 622.3360000000002
