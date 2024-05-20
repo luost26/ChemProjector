@@ -1,11 +1,10 @@
-import functools
 import multiprocessing as mp
 import os
+import pathlib
 import pickle
 from multiprocessing import synchronize as sync
 from typing import TypeAlias
 
-import click
 import pandas as pd
 import torch
 from omegaconf import OmegaConf
@@ -21,15 +20,13 @@ from .state_pool import StatePool, TimeLimit
 TaskQueueType: TypeAlias = "mp.JoinableQueue[Molecule | None]"
 ResultQueueType: TypeAlias = "mp.Queue[tuple[Molecule, pd.DataFrame]]"
 
-_NUM_GPUS = torch.cuda.device_count()
-
 
 class Worker(mp.Process):
     def __init__(
         self,
-        fpindex_path: os.PathLike,
-        rxn_matrix_path: os.PathLike,
-        model_path: os.PathLike,
+        fpindex_path: pathlib.Path,
+        rxn_matrix_path: pathlib.Path,
+        model_path: pathlib.Path,
         task_queue: TaskQueueType,
         result_queue: ResultQueueType,
         gpu_id: str,
@@ -60,7 +57,7 @@ class Worker(mp.Process):
         self._fpindex: FingerprintIndex = pickle.load(open(self._fpindex_path, "rb"))
         self._rxn_matrix: ReactantReactionMatrix = pickle.load(open(self._rxn_matrix_path, "rb"))
 
-        ckpt = torch.load(self._model_path)
+        ckpt = torch.load(self._model_path, map_location="cpu")
         config = OmegaConf.create(ckpt["hyper_parameters"]["config"])
         model = Projector(config.model).to("cuda")
         model.load_state_dict({k[6:]: v for k, v in ckpt["state_dict"].items()})
@@ -162,38 +159,21 @@ class WorkerPool:
         self._task_queue.close()
 
 
-def sampler_options(func):
-    @click.option("--model-path", "-m", type=click.Path(exists=True), required=True)
-    @click.option("--rxn-matrix-path", type=click.Path(exists=True), default="data/processed/all/matrix.pkl")
-    @click.option("--fpindex-path", type=click.Path(exists=True), default="data/processed/all/fpindex.pkl")
-    @click.option("--search-width", type=int, default=24)
-    @click.option("--exhaustiveness", type=int, default=64)
-    @click.option("--num-gpus", type=int, default=_NUM_GPUS)
-    @click.option("--num-workers-per-gpu", type=int, default=1)
-    @click.option("--task-qsize", type=int, default=0)
-    @click.option("--result-qsize", type=int, default=0)
-    @click.option("--time-limit", type=int, default=180)
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
 def run_parallel_sampling(
     input: list[Molecule],
-    output: os.PathLike,
-    model_path: os.PathLike,
-    rxn_matrix_path: os.PathLike,
-    fpindex_path: os.PathLike,
+    output: pathlib.Path,
+    model_path: pathlib.Path,
+    rxn_matrix_path: pathlib.Path,
+    fpindex_path: pathlib.Path,
     search_width: int = 24,
     exhaustiveness: int = 64,
-    num_gpus: int = _NUM_GPUS,
+    num_gpus: int = -1,
     num_workers_per_gpu: int = 2,
     task_qsize: int = 0,
     result_qsize: int = 0,
     time_limit: int = 180,
 ) -> None:
+    num_gpus = num_gpus if num_gpus > 0 else torch.cuda.device_count()
     pool = WorkerPool(
         gpu_ids=list(range(num_gpus)),
         num_workers_per_gpu=num_workers_per_gpu,
@@ -208,13 +188,15 @@ def run_parallel_sampling(
         },
         time_limit=time_limit,
     )
+    output.parent.mkdir(parents=True, exist_ok=True)
 
+    total = len(input)
     for mol in input:
         pool.submit(mol)
 
     df_all: list[pd.DataFrame] = []
     with open(output, "w") as f:
-        for _ in tqdm(range(len(input))):
+        for _ in tqdm(range(total)):
             _, df = pool.fetch()
             if len(df) == 0:
                 continue
@@ -222,6 +204,19 @@ def run_parallel_sampling(
             df_all.append(df)
 
     df_merge = pd.concat(df_all, ignore_index=True)
-    print(df_merge.loc[df_merge.groupby("target").idxmax()["score"]].select_dtypes(include="number").mean())
+    print(df_merge.loc[df_merge.groupby("target").idxmax()["score"]].select_dtypes(include="number").sum() / total)
+
+    count_success = len(df_merge["target"].unique())
+    print(f"Success rate: {count_success}/{total} = {count_success / total:.3f}")
+
+    recons_targets: set[str] = set()
+    for _, row in df_merge.iterrows():
+        if row["score"] == 1.0:
+            mol_target = Molecule(row["target"])
+            mol_recons = Molecule(row["smiles"])
+            if mol_recons.csmiles == mol_target.csmiles:
+                recons_targets.add(row["target"])
+    count_recons = len(recons_targets)
+    print(f"Reconstruction rate: {count_recons}/{total} = {count_recons / total:.3f}")
 
     pool.end()
