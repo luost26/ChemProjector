@@ -4,4 +4,4 @@ python sample.py \
     --model-path data/trained_weights/default.ckpt \
     --num-gpus -1 \
     --num-workers-per-gpu 2 \
-    --exhaustiveness 512 \
+    --exhaustiveness 128 \
