@@ -1,6 +1,6 @@
 *
 !.gitignore
-!hartenfeller_button.txt
+!reaction_templates_hb.txt
 !synthesis_planning
 !synthesis_planning/*
 !goal_directed

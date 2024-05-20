@@ -16,7 +16,7 @@ _default_sdf_path = pathlib.Path("data/Enamine_Rush-Delivery_Building_Blocks-US_
 @click.option(
     "--reaction",
     type=click.Path(exists=True, path_type=pathlib.Path),
-    default=pathlib.Path("data/hartenfeller_button.txt"),
+    default=pathlib.Path("data/reaction_templates_hb.txt"),
 )
 @click.option("--out", type=click.Path(path_type=pathlib.Path), default=pathlib.Path("data/processed/all/matrix.pkl"))
 def matrix(reactant: pathlib.Path, reaction: pathlib.Path, out: pathlib.Path):
