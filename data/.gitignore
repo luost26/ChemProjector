@@ -1,3 +1,5 @@
 *
 !.gitignore
 !hartenfeller_button.txt
+!synthesis_planning
+!synthesis_planning/*
