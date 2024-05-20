@@ -2,6 +2,7 @@ import multiprocessing as mp
 import os
 import pathlib
 import pickle
+import subprocess
 from multiprocessing import synchronize as sync
 from typing import TypeAlias
 
@@ -159,6 +160,14 @@ class WorkerPool:
         self._task_queue.close()
 
 
+def _count_gpus():
+    return int(
+        subprocess.check_output(
+            "nvidia-smi --query-gpu=name --format=csv,noheader | wc -l", shell=True, text=True
+        ).strip()
+    )
+
+
 def run_parallel_sampling(
     input: list[Molecule],
     output: pathlib.Path,
@@ -173,7 +182,7 @@ def run_parallel_sampling(
     result_qsize: int = 0,
     time_limit: int = 180,
 ) -> None:
-    num_gpus = num_gpus if num_gpus > 0 else torch.cuda.device_count()
+    num_gpus = num_gpus if num_gpus > 0 else _count_gpus()
     pool = WorkerPool(
         gpu_ids=list(range(num_gpus)),
         num_workers_per_gpu=num_workers_per_gpu,
