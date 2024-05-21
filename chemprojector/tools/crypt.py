@@ -1,6 +1,8 @@
 import base64
 import hashlib
 import random
+import pathlib
+import pickle
 from collections.abc import Iterable
 from typing import TypedDict
 
@@ -53,21 +55,34 @@ def encrypt_message(
 def decrypt_message(
     pack: EncryptedPack,
     mols: Iterable[Molecule],
+    print_fn=print,
 ) -> tuple[str, bytes] | None:
     key_mols: list[Molecule] = []
     for mol in mols:
         if mol.csmiles_md5 in pack["hints"]:
             key_mols.append(mol)
-            print(f"Found key molecule {len(key_mols)}/{len(pack['hints'])}.")
+            print_fn(f"Found key molecule {len(key_mols)}/{len(pack['hints'])}.")
             if len(key_mols) == len(pack["hints"]):
-                print("All key molecules found!")
-                print("Starting decryption...")
                 break
 
-    if len(key_mols) != len(pack["hints"]):
-        print("Not all key molecules found, aborting.")
+    if len(key_mols) == len(pack["hints"]):
+        print_fn("All key molecules found!")
+        print_fn("Starting decryption...")
+    else:
+        print_fn("Not all key molecules found, aborting.")
         return None
 
     key = generate_key_from_mols(key_mols)
     message = decrypt(pack["encrypted"], key)
     return message, key
+
+
+def save_encrypted_pack(pack: EncryptedPack, path: pathlib.Path):
+    with open(path, "wb") as f:
+        f.write(base64.b64encode(pickle.dumps(pack)))
+
+
+def load_encrypted_pack(path: pathlib.Path) -> EncryptedPack:
+    with open(path, "r") as f:
+        pack = pickle.loads(base64.b64decode(f.read()))
+    return pack
