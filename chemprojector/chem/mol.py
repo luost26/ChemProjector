@@ -3,7 +3,7 @@ import hashlib
 import os
 import pathlib
 from collections.abc import Iterable, Sequence
-from functools import cache, cached_property
+from functools import cache, cached_property, partial
 from typing import Literal, overload
 
 import numpy as np
@@ -225,6 +225,7 @@ def read_mol_file(
     drop_duplicates: bool = True,
     show_pbar: bool = True,
     smiles_col: str | None = None,
+    pbar_fn=partial(tqdm, desc="Reading"),
 ) -> Iterable[Molecule]:
     path = pathlib.Path(path)
     if path.suffix == ".sdf":
@@ -245,7 +246,7 @@ def read_mol_file(
         raise ValueError(f"Unsupported file type: {path.suffix}")
     visited: set[str] = set()
     if show_pbar:
-        f_iter = tqdm(f, desc="Reading")
+        f_iter = pbar_fn(f)
     else:
         f_iter = f
     for rdmol in f_iter:
