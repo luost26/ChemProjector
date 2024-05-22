@@ -141,9 +141,6 @@ def main(
         )
         counter[receptor_name] += 1
 
-        if _ >= 10:
-            break
-
     with tqdm_joblib(tqdm(desc="Docking", total=len(tasks))):
         outputs: list[QVinaOutput | None] = joblib.Parallel(n_jobs=n_jobs)(joblib.delayed(task)() for task in tasks)
 
