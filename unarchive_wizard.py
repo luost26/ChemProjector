@@ -1,18 +1,20 @@
 import pathlib
+import subprocess
 import sys
 from functools import partial
-import subprocess
 
 from rich.console import Console
 from rich.markdown import Markdown
-from rich.table import Table
-from rich.rule import Rule
 from rich.panel import Panel
 from rich.progress import track
+from rich.prompt import Confirm
+from rich.rule import Rule
+from rich.table import Table
 
-from chemprojector.tools.crypt import decrypt_message, load_encrypted_pack
 from chemprojector.chem.mol import read_mol_file
+from chemprojector.tools.crypt import decrypt_message, load_encrypted_pack
 
+_US_Stock_prefix = "Enamine_Rush-Delivery_Building_Blocks-US"
 
 content = """
 # Unarchive Wizard
@@ -40,8 +42,8 @@ and unarchive the data.
     - Once you are approved, download the **US Stock** catalog from the same web page.
     - Unzip the catalog archive and put the `.sdf` file into the `data` directory.
 3. Run this script.
-    - This script will automatically verify the Enamine's catalog file in the `data` directory and unarchive the preprocessed
-      data for you.
+    - This script will automatically verify the Enamine's catalog file in the `data` directory and unarchive the
+      preprocessed data for you.
 """
 
 
@@ -56,10 +58,10 @@ def check_archive():
 def check_enamine():
     data_dir = pathlib.Path("data")
     for file in data_dir.iterdir():
-        if file.name.startswith("Enamine_Rush-Delivery_Building_Blocks-US") and file.suffix == ".sdf":
+        if file.name.startswith(_US_Stock_prefix) and file.suffix == ".sdf":
             return file.absolute(), f"[green]:white_check_mark: File found: {file}"
         elif file.name.startswith("Enamine") and file.suffix == ".sdf":
-            return False, (
+            return file.absolute(), (
                 f"[yellow]:construction: File found: {file}. "
                 "It is possibly not the US Stock catalog and might not work."
             )
@@ -90,6 +92,13 @@ if __name__ == "__main__":
         exit(1)
 
     console.print(Rule())
+
+    if not enamine_path.name.startswith(_US_Stock_prefix):
+        if not Confirm.ask(
+            "The catalog file found is not the US Stock catalog. " "Do you want to continue with this file?",
+            console=console,
+        ):
+            exit(1)
 
     enc_pack = load_encrypted_pack(pathlib.Path("data/processed.key"))
     out = decrypt_message(
