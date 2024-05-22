@@ -38,6 +38,7 @@ class QVinaOutput:
     path: pathlib.Path
     mode_id: int
     affinity: float
+    receptor_name: str = ""
 
 
 class QVinaDockingTask:
@@ -50,6 +51,7 @@ class QVinaDockingTask:
         obabel_path: pathlib.Path,
         output_path: pathlib.Path,
         overwrite: bool = False,
+        receptor_name: str = "",
     ) -> None:
         super().__init__()
         if receptor_path.suffix != ".pdbqt":
@@ -61,6 +63,8 @@ class QVinaDockingTask:
         self._obabel_path = obabel_path
         self._output_path = output_path
         self._overwrite = overwrite
+
+        self.receptor_name = receptor_name
 
     def __call__(self, workdir_path: pathlib.Path | None = None) -> QVinaOutput | None:
         if workdir_path is None:
@@ -155,6 +159,7 @@ class QVinaDockingTask:
                     path=docked_sdf_path,
                     mode_id=i,
                     affinity=score,
+                    receptor_name=self.receptor_name,
                 )
             )
         return results
