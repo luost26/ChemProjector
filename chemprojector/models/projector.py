@@ -11,7 +11,7 @@ from chemprojector.chem.fpindex import FingerprintIndex
 from chemprojector.chem.matrix import ReactantReactionMatrix
 from chemprojector.chem.mol import Molecule
 from chemprojector.chem.reaction import Reaction
-from chemprojector.data.projection_dataset import ProjectionBatch, TokenType
+from chemprojector.data.common import ProjectionBatch, TokenType
 from chemprojector.models.transformer.graph_transformer import GraphTransformer
 from chemprojector.models.transformer.positional_encoding import PositionalEncoding
 

@@ -8,7 +8,7 @@ from omegaconf import OmegaConf
 
 from chemprojector.chem.fpindex import FingerprintIndex
 from chemprojector.chem.matrix import ReactantReactionMatrix
-from chemprojector.data.projection_dataset import ProjectionBatch, draw_batch
+from chemprojector.data.common import ProjectionBatch, draw_batch
 from chemprojector.utils.train import get_optimizer, get_scheduler, sum_weighted_losses
 
 from .projector import Projector, draw_generation_results
