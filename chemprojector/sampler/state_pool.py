@@ -20,7 +20,7 @@ from chemprojector.data.collate import (
     collate_padding_masks,
     collate_tokens,
 )
-from chemprojector.data.projection_dataset import TokenType, featurize_stack
+from chemprojector.data.common import TokenType, featurize_stack
 from chemprojector.models.projector import Projector
 
 
