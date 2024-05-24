@@ -1,6 +1,7 @@
 import dataclasses
 import itertools
 import random
+from collections.abc import Iterable
 from typing import TypeAlias
 
 import numpy as np
@@ -189,18 +190,18 @@ def create_init_stack(matrix: ReactantReactionMatrix, weighted_ratio: float = 0.
 def expand_stack(stack: Stack, matrix: ReactantReactionMatrix):
     matches = matrix.reactions.match_reactions(random.choice(list(stack.get_top())))
     if len(matches) == 0:
-        return stack
+        return stack, False
     rxn_index = random.choice(list(matches.keys()))
     reactant_flag = 1 << matches[rxn_index][0]
 
     rxn_col = matrix.matrix[:, rxn_index]
     s_indices = np.logical_and(rxn_col != 0, rxn_col != reactant_flag).nonzero()[0]
     if len(s_indices) == 0:
-        return stack
+        return stack, False
     s_index = np.random.choice(s_indices)
     stack.push_mol(matrix.reactants[s_index], s_index)
     stack.push_rxn(matrix.reactions[rxn_index], rxn_index)
-    return stack
+    return stack, True
 
 
 def create_stack(
@@ -211,7 +212,27 @@ def create_stack(
 ) -> Stack:
     stack = create_init_stack(matrix, weighted_ratio=init_stack_weighted_ratio)
     for _ in range(1, max_num_reactions):
-        stack = expand_stack(stack, matrix)
+        stack, changed = expand_stack(stack, matrix)
+        if not changed:
+            break
         if max(map(lambda m: m.num_atoms, stack.get_top())) > max_num_atoms:
             break
     return stack
+
+
+def create_stack_step_by_step(
+    matrix: ReactantReactionMatrix,
+    max_num_reactions: int = 5,
+    max_num_atoms: int = 80,
+    init_stack_weighted_ratio: float = 0.0,
+) -> Iterable[Stack]:
+    stack = create_init_stack(matrix, weighted_ratio=init_stack_weighted_ratio)
+    yield stack
+    for _ in range(1, max_num_reactions):
+        stack, changed = expand_stack(stack, matrix)
+        if changed:
+            yield stack
+        else:
+            break
+        if max(map(lambda m: m.num_atoms, stack.get_top())) > max_num_atoms:
+            break

@@ -6,7 +6,7 @@ import torch
 from omegaconf import OmegaConf
 from pytorch_lightning import callbacks, loggers, strategies
 
-from chemprojector.data.projection_dataset import ProjectionDataModule
+from chemprojector.data.projection_dataset_new import ProjectionDataModule
 from chemprojector.models.projector_wrapper import ProjectorWrapper
 from chemprojector.utils.misc import (
     get_config_name,
@@ -24,7 +24,7 @@ torch.set_float32_matmul_precision("medium")
 @click.argument("config_path", type=click.Path(exists=True))
 @click.option("--seed", type=int, default=42)
 @click.option("--debug", is_flag=True)
-@click.option("--batch-size", "-b", type=int, default=16)
+@click.option("--batch-size", "-b", type=int, default=64)
 @click.option("--num-workers", type=int, default=4)
 @click.option("--devices", type=int, default=4)
 @click.option("--num-nodes", type=int, default=int(os.environ.get("NUM_NODES", 1)))
@@ -60,7 +60,6 @@ def main(
         config,
         batch_size=batch_size,
         num_workers=num_workers,
-        max_datapoints_per_sample=4,
         **config.data,
     )
 
