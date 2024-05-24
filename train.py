@@ -89,6 +89,8 @@ def main(
         logger=[
             loggers.TensorBoardLogger(log_dir, name=exp_name, version=exp_ver),
         ],
+        val_check_interval=config.train.val_freq,
+        limit_val_batches=4,
     )
     trainer.fit(model, datamodule=datamodule, ckpt_path=resume)
 
