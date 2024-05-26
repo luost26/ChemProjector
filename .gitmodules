@@ -1,0 +1,6 @@
+[submodule "third_party/guacamol"]
+	path = third_party/guacamol
+	url = https://github.com/BenevolentAI/guacamol.git
+[submodule "third_party/FCD"]
+	path = third_party/FCD
+	url = https://github.com/bioinf-jku/FCD
