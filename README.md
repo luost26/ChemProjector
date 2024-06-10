@@ -1,6 +1,6 @@
 # ChemProjector
 
-<img src="./assets/animate.gif" alt="cover" style="width:50%;" />
+<img src="./assets/animate.gif" alt="cover" style="width:70%;" />
 
 :dart: Projecting Molecules into Synthesizable Chemical Spaces (ICML 2024)
 
