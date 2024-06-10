@@ -162,3 +162,5 @@ cython_debug/
 /playground
 /logs*
 /results*
+
+.DS_Store
