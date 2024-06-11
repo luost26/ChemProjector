@@ -90,7 +90,7 @@ def create_reactant_reaction_matrix_cache(
     rxns = ReactionContainer(read_reaction_file(reaction_path))
     mols = list(read_mol_file(reactant_path))
     if excl_path is not None:
-        excl_smiles = set(m.smiles for m in read_mol_file(excl_path))
+        excl_smiles = {m.smiles for m in read_mol_file(excl_path)}
         mols = [m for m in mols if m.smiles not in excl_smiles]
     m = ReactantReactionMatrix(mols, rxns)
     with open(cache_path, "wb") as f:

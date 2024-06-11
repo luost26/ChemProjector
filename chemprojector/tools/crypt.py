@@ -1,8 +1,8 @@
 import base64
 import hashlib
-import random
 import pathlib
 import pickle
+import random
 from collections.abc import Iterable
 from typing import TypedDict
 
@@ -83,6 +83,6 @@ def save_encrypted_pack(pack: EncryptedPack, path: pathlib.Path):
 
 
 def load_encrypted_pack(path: pathlib.Path) -> EncryptedPack:
-    with open(path, "r") as f:
+    with open(path) as f:
         pack = pickle.loads(base64.b64decode(f.read()))
     return pack

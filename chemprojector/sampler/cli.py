@@ -1,7 +1,6 @@
 import pathlib
 
 import click
-import torch
 
 from chemprojector.chem.mol import Molecule, read_mol_file
 

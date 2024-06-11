@@ -1,11 +1,11 @@
+import pathlib
 import subprocess
 import uuid
-import pathlib
 
 import click
 
-from chemprojector.tools.crypt import encrypt_message, save_encrypted_pack
 from chemprojector.chem.mol import read_mol_file
+from chemprojector.tools.crypt import encrypt_message, save_encrypted_pack
 
 _default_sdf_path = pathlib.Path("data/Enamine_Rush-Delivery_Building_Blocks-US_223244cmpd_20231001.sdf")
 
@@ -43,8 +43,7 @@ def main(out_archive: pathlib.Path, out_key: pathlib.Path, sdf: pathlib.Path, se
         cwd=data_dir,
         check=True,
         stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
     )
 
 
