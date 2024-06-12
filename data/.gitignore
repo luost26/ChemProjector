@@ -1,6 +1,7 @@
 *
 !.gitignore
 !reaction_templates_hb.txt
+!example.csv
 !synthesis_planning
 !synthesis_planning/*
 !goal_directed
