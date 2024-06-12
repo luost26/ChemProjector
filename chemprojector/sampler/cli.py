@@ -14,7 +14,12 @@ def _input_mols_option(p):
 @click.command()
 @click.option("--input", "-i", type=_input_mols_option, required=True)
 @click.option("--output", "-o", type=click.Path(exists=False, path_type=pathlib.Path), required=True)
-@click.option("--model-path", "-m", type=click.Path(exists=True, path_type=pathlib.Path), required=True)
+@click.option(
+    "--model-path",
+    "-m",
+    type=click.Path(exists=True, path_type=pathlib.Path),
+    default="data/trained_weights/default.ckpt",
+)
 @click.option(
     "--rxn-matrix-path",
     type=click.Path(exists=True, path_type=pathlib.Path),
