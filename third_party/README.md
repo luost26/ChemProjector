@@ -4,3 +4,5 @@ These third-party libraries are automatically installed when you install the Che
 ```bash
 pip install -e .
 ```
+
+NOTE: We do not use the official GuacaMol repo because it has an unfixed issue [here](https://github.com/BenevolentAI/guacamol/pull/32).
