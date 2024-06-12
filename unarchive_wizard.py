@@ -34,7 +34,7 @@ and unarchive the data.
 
 1. Prepare the archived preprocessed data.
     - Download the archive from
-      [https://github.com/luost26/ChemProjector](https://github.com/luost26/ChemProjector)
+      [https://drive.google.com/file/d/1scui0RZ8oeroDAafnw4jgTi3yKtXxXpe/view?usp=drive_link](https://drive.google.com/file/d/1scui0RZ8oeroDAafnw4jgTi3yKtXxXpe/view?usp=drive_link)
     - Put the archive file `processed.zip` into the `data` directory.
 2. Prepare Enamine's building block catalog.
     - Request the Enamine's building block catalog on
