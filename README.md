@@ -6,7 +6,6 @@
 
 [[Paper]](https://arxiv.org/abs/2406.04628)
 
-:construction: Work in progress ...
 
 ## Install
 
@@ -51,8 +50,27 @@ python sample.py \
 
 ### Model Evaluation
 
-:construction: Work in progress ...
+#### Bottom-Up Synthesis Planning
 
+Using the test split:
+
+```bash
+./scripts/synthesis_planning_test_split.sh
+```
+
+or using the ChEMBL dataset:
+
+```bash
+./scripts/synthesis_planning_chembl.sh
+```
+
+#### Structure-Based Drug Design
+
+Please refer to the `scripts/sbdd` directory for details.
+
+#### Goal-Directed Generation
+
+Please refer to the `scripts/goal_directed` directory for details.
 
 ## Reference
 
