@@ -20,7 +20,7 @@ conda activate chemprojector
 pip install -e .
 ```
 
-The default CUDA version is 11.8. If you have a different version, please modify the `env.yml` file accordingly.
+The default CUDA version is 11.8. If you have to use a different version, please modify the `env.yml` file accordingly.
 
 
 ### Building Block Data
