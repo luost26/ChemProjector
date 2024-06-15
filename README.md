@@ -28,7 +28,8 @@ The default CUDA version is 11.8. If you have to use a different version, please
 We provide preprocessed building block data. You can download it from [here](https://drive.google.com/file/d/1scui0RZ8oeroDAafnw4jgTi3yKtXxXpe/view?usp=drive_link) and put it in the `data` directory.
 
 However, the data is derived from Enamine's building block catalog, which are **available only upon request**.
-Therefore, you should first request the data from Enamine [here](https://enamine.net/building-blocks/building-blocks-catalog), and then run the following command to unarchive the preprocessed data. The script will check whether you have a copy of the Enamine's catalog and do the rest for you.
+Therefore, you should first request the data from Enamine [here](https://enamine.net/building-blocks/building-blocks-catalog) and download the US Stock catalog into the `data` directory.
+Then run the following script which will check whether you have a copy of the Enamine's catalog and unarchive the preprocessed data for you:
 ```bash
 python unarchive_wizard.py
 ```
@@ -75,6 +76,12 @@ Please refer to the `scripts/sbdd` directory for details.
 #### Goal-Directed Generation
 
 Please refer to the `scripts/goal_directed` directory for details.
+
+### Train
+
+```bash
+python train.py ./configs/default.yml
+```
 
 ## Reference
 
