@@ -180,14 +180,16 @@ class GraphTransformer(nn.Module):
                                 GatedResidual(dim),
                             ]
                         ),
-                        nn.ModuleList(
-                            [
-                                PreNorm(dim, FeedForward(dim)),
-                                GatedResidual(dim),
-                            ]
-                        )
-                        if with_feedforwards
-                        else nn.ModuleList([]),
+                        (
+                            nn.ModuleList(
+                                [
+                                    PreNorm(dim, FeedForward(dim)),
+                                    GatedResidual(dim),
+                                ]
+                            )
+                            if with_feedforwards
+                            else nn.ModuleList([])
+                        ),
                     ]
                 )
             )

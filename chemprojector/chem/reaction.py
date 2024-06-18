@@ -124,12 +124,10 @@ class ReactionContainer(Sequence[Reaction]):
         self._reactions = tuple(reactions)
 
     @overload
-    def __getitem__(self, index: int) -> Reaction:
-        ...
+    def __getitem__(self, index: int) -> Reaction: ...
 
     @overload
-    def __getitem__(self, index: slice) -> tuple[Reaction, ...]:
-        ...
+    def __getitem__(self, index: slice) -> tuple[Reaction, ...]: ...
 
     def __getitem__(self, index: int | slice):
         return self._reactions[index]
