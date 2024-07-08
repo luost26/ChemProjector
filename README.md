@@ -9,6 +9,14 @@
 
 ## Install
 
+### Clone Repo
+
+Please clone the repository with the `--recurse-submodules` flag to *include the third-party submodules*.
+
+```bash
+git clone --recurse-submodules https://github.com/luost26/ChemProjector.git
+```
+
 ### Environment
 
 ```bash
