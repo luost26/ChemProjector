@@ -134,7 +134,7 @@ class ProjectionDataModule(pl.LightningDataModule):
         self.train_dataset = ProjectionDataset(
             reaction_matrix=rxn_matrix,
             fpindex=fpindex,
-            virtual_length=self.config.train.val_freq * self.batch_size * trainer.world_size,
+            virtual_length=self.config.train.val_freq * self.batch_size,
             **self.dataset_options,
         )
         self.val_dataset = ProjectionDataset(
