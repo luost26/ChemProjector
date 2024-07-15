@@ -17,7 +17,7 @@ from rdkit.Chem.Scaffolds import MurckoScaffold
 from tqdm.auto import tqdm
 
 from .base import Drawable
-from .featurize import atom_features_simple, bond_features_simple
+from .featurize import atom_features_simple, bond_features_simple, tokenize_smiles
 
 
 @dataclasses.dataclass(frozen=True, eq=True, unsafe_hash=True)
@@ -150,6 +150,9 @@ class Molecule(Drawable):
                 bond_f[idx, jdx] = bond_features_simple(bond)
 
         return atom_f, bond_f
+
+    def tokenize_csmiles(self) -> torch.Tensor:
+        return torch.tensor(tokenize_smiles(self.csmiles), dtype=torch.long)
 
     @overload
     def get_fingerprint(self, option: FingerprintOption) -> np.ndarray: ...
