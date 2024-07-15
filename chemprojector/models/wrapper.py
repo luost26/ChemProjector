@@ -66,7 +66,7 @@ class ChemProjectorWrapper(pl.LightningModule):
         if "fp_select" in aux_dict:
             fp_select: torch.Tensor = aux_dict["fp_select"]
             fp_ratios: dict[str, float] = {}
-            for i in range(self.model.cfg.dec.num_out_fingerprints):
+            for i in range(int(fp_select.max().item()) + 1):
                 ratio = (fp_select == i).float().mean().nan_to_num(0.0)
                 fp_ratios[f"fp_select/{i}"] = ratio.item()
             self.log_dict(fp_ratios, on_step=True, logger=True)

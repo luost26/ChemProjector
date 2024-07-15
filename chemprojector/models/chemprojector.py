@@ -54,7 +54,7 @@ class ChemProjector(nn.Module):
         )
         self.reaction_head = ClassifierHead(
             self.d_model,
-            cfg.decoder.num_reaction_classes,
+            cfg.reaction_head.num_reaction_classes,
             dim_hidden=cfg.reaction_head.dim_hidden,
         )
         self.fingerprint_head: BaseFingerprintHead = MultiFingerprintHead(**cfg.fingerprint_head)
@@ -141,7 +141,7 @@ class ChemProjector(nn.Module):
 
         token_logits = self.token_head.predict(h_next)
         reaction_logits = self.reaction_head.predict(h_next)[..., : len(rxn_matrix.reactions)]
-        retrieved_reactants = self.fingerprint_head.retrieve_reactants(h, fpindex, topk, **options)
+        retrieved_reactants = self.fingerprint_head.retrieve_reactants(h_next, fpindex, topk, **options)
         return PredictResult(token_logits, reaction_logits, retrieved_reactants)
 
     @torch.inference_mode()
