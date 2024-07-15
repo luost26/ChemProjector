@@ -14,7 +14,7 @@ from tqdm.auto import tqdm
 from chemprojector.chem.fpindex import FingerprintIndex
 from chemprojector.chem.matrix import ReactantReactionMatrix
 from chemprojector.chem.mol import FingerprintOption, Molecule
-from chemprojector.models.projector import Projector
+from chemprojector.models.old.projector import Projector
 
 from .state_pool import StatePool, TimeLimit
 

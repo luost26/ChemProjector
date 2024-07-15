@@ -7,7 +7,7 @@ from omegaconf import OmegaConf
 from pytorch_lightning import callbacks, loggers, strategies
 
 from chemprojector.data.projection_dataset import ProjectionDataModule
-from chemprojector.models.projector_wrapper import ProjectorWrapper
+from chemprojector.models.old.projector_wrapper import ProjectorWrapper
 from chemprojector.utils.misc import (
     get_config_name,
     get_experiment_name,

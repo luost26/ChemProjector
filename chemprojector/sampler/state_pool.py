@@ -21,7 +21,7 @@ from chemprojector.data.collate import (
     collate_tokens,
 )
 from chemprojector.data.common import TokenType, featurize_stack
-from chemprojector.models.projector import Projector
+from chemprojector.models.old.projector import Projector
 
 
 @dataclasses.dataclass
