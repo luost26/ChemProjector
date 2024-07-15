@@ -1,7 +1,6 @@
 import os
 import pickle
 import random
-from collections.abc import Iterable
 from typing import cast
 
 import pytorch_lightning as pl
@@ -24,9 +23,10 @@ from .common import ProjectionBatch, ProjectionData, create_data
 
 
 class Collater:
-    def __init__(self, max_num_atoms: int = 96, max_num_tokens: int = 24):
+    def __init__(self, max_num_atoms: int = 96, max_smiles_len: int = 192, max_num_tokens: int = 24):
         super().__init__()
         self.max_num_atoms = max_num_atoms
+        self.max_smiles_len = max_smiles_len
         self.max_num_tokens = max_num_tokens
 
         self.spec_atoms = {
@@ -34,6 +34,7 @@ class Collater:
             "bonds": collate_2d_tokens,
             "atom_padding_mask": collate_padding_masks,
         }
+        self.spec_smiles = {"smiles": collate_tokens}
         self.spec_tokens = {
             "token_types": collate_tokens,
             "rxn_indices": collate_tokens,
@@ -45,6 +46,7 @@ class Collater:
         data_list_t = cast(list[dict[str, torch.Tensor]], data_list)
         batch = {
             **apply_collate(self.spec_atoms, data_list_t, max_size=self.max_num_atoms),
+            **apply_collate(self.spec_smiles, data_list_t, max_size=self.max_smiles_len),
             **apply_collate(self.spec_tokens, data_list_t, max_size=self.max_num_tokens),
             "mol_seq": [d["mol_seq"] for d in data_list],
             "rxn_seq": [d["rxn_seq"] for d in data_list],
@@ -52,12 +54,13 @@ class Collater:
         return cast(ProjectionBatch, batch)
 
 
-class ProjectionDataset(IterableDataset):
+class ProjectionDataset(IterableDataset[ProjectionData]):
     def __init__(
         self,
         reaction_matrix: ReactantReactionMatrix,
         fpindex: FingerprintIndex,
         max_num_atoms: int = 80,
+        max_smiles_len: int = 192,
         max_num_reactions: int = 5,
         init_stack_weighted_ratio: float = 0.0,
         virtual_length: int = 65536,
@@ -65,6 +68,7 @@ class ProjectionDataset(IterableDataset):
         super().__init__()
         self._reaction_matrix = reaction_matrix
         self._max_num_atoms = max_num_atoms
+        self._max_smiles_len = max_smiles_len
         self._max_num_reactions = max_num_reactions
         self._fpindex = fpindex
         self._init_stack_weighted_ratio = init_stack_weighted_ratio
@@ -73,7 +77,7 @@ class ProjectionDataset(IterableDataset):
     def __len__(self) -> int:
         return self._virtual_length
 
-    def __iter__(self) -> Iterable[ProjectionData]:
+    def __iter__(self):
         while True:
             for stack in create_stack_step_by_step(
                 self._reaction_matrix,
@@ -85,14 +89,17 @@ class ProjectionDataset(IterableDataset):
                 mol_idx_seq_full = stack.get_mol_idx_seq()
                 rxn_seq_full = stack.rxns
                 rxn_idx_seq_full = stack.get_rxn_idx_seq()
-                yield create_data(
-                    product=random.choice(list(stack.get_top())),
+                product = random.choice(list(stack.get_top()))
+                data = create_data(
+                    product=product,
                     mol_seq=mol_seq_full,
                     mol_idx_seq=mol_idx_seq_full,
                     rxn_seq=rxn_seq_full,
                     rxn_idx_seq=rxn_idx_seq_full,
                     fpindex=self._fpindex,
                 )
+                data["smiles"] = data["smiles"][: self._max_smiles_len]
+                yield data
 
 
 class ProjectionDataModule(pl.LightningDataModule):
@@ -159,7 +166,7 @@ class ProjectionDataModule(pl.LightningDataModule):
         return DataLoader(
             self.val_dataset,
             batch_size=self.batch_size,
-            num_workers=self.num_workers,
+            num_workers=1,
             collate_fn=Collater(),
             worker_init_fn=worker_init_fn,
             persistent_workers=True,

@@ -23,6 +23,7 @@ class ProjectionData(TypedDict, total=False):
     atoms: torch.Tensor
     bonds: torch.Tensor
     atom_padding_mask: torch.Tensor
+    smiles: torch.Tensor
     # Decoder
     token_types: torch.Tensor
     rxn_indices: torch.Tensor
@@ -38,6 +39,7 @@ class ProjectionBatch(TypedDict, total=False):
     atoms: torch.Tensor
     bonds: torch.Tensor
     atom_padding_mask: torch.Tensor
+    smiles: torch.Tensor
     # Decoder
     token_types: torch.Tensor
     rxn_indices: torch.Tensor
