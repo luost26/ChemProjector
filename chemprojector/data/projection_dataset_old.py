@@ -5,11 +5,11 @@ from typing import cast
 
 import pytorch_lightning as pl
 import torch
-from torch.utils.data import DataLoader, IterableDataset
+from torch.utils.data import DataLoader, Dataset
 
 from chemprojector.chem.fpindex import FingerprintIndex
 from chemprojector.chem.matrix import ReactantReactionMatrix
-from chemprojector.chem.stack import create_stack_step_by_step
+from chemprojector.chem.stack import create_stack
 from chemprojector.utils.train import worker_init_fn
 
 from .collate import (
@@ -23,10 +23,10 @@ from .common import ProjectionBatch, ProjectionData, create_data
 
 
 class Collater:
-    def __init__(self, max_num_atoms: int = 96, max_smiles_len: int = 192, max_num_tokens: int = 24):
+    def __init__(self, max_datapoints: int | None = None, max_num_atoms: int = 96, max_num_tokens: int = 24):
         super().__init__()
+        self.max_datapoints = max_datapoints
         self.max_num_atoms = max_num_atoms
-        self.max_smiles_len = max_smiles_len
         self.max_num_tokens = max_num_tokens
 
         self.spec_atoms = {
@@ -34,7 +34,6 @@ class Collater:
             "bonds": collate_2d_tokens,
             "atom_padding_mask": collate_padding_masks,
         }
-        self.spec_smiles = {"smiles": collate_tokens}
         self.spec_tokens = {
             "token_types": collate_tokens,
             "rxn_indices": collate_tokens,
@@ -42,64 +41,81 @@ class Collater:
             "token_padding_mask": collate_padding_masks,
         }
 
-    def __call__(self, data_list: list[ProjectionData]) -> ProjectionBatch:
-        data_list_t = cast(list[dict[str, torch.Tensor]], data_list)
+    def __call__(self, data_list: list[list[ProjectionData]]) -> ProjectionBatch:
+        flat = [d for subl in data_list for d in subl]
+        if self.max_datapoints is not None:
+            random.shuffle(flat)
+            flat = flat[: self.max_datapoints]
+            if len(flat) < self.max_datapoints:
+                flat += random.choices(flat, k=self.max_datapoints - len(flat))
+        flat_t = cast(list[dict[str, torch.Tensor]], flat)
         batch = {
-            **apply_collate(self.spec_atoms, data_list_t, max_size=self.max_num_atoms),
-            **apply_collate(self.spec_smiles, data_list_t, max_size=self.max_smiles_len),
-            **apply_collate(self.spec_tokens, data_list_t, max_size=self.max_num_tokens),
-            "mol_seq": [d["mol_seq"] for d in data_list],
-            "rxn_seq": [d["rxn_seq"] for d in data_list],
+            **apply_collate(self.spec_atoms, flat_t, max_size=self.max_num_atoms),
+            **apply_collate(self.spec_tokens, flat_t, max_size=self.max_num_tokens),
+            "mol_seq": [d["mol_seq"] for d in flat],
+            "rxn_seq": [d["rxn_seq"] for d in flat],
         }
         return cast(ProjectionBatch, batch)
 
 
-class ProjectionDataset(IterableDataset[ProjectionData]):
+class ProjectionDataset(Dataset):
     def __init__(
         self,
         reaction_matrix: ReactantReactionMatrix,
         fpindex: FingerprintIndex,
         max_num_atoms: int = 80,
-        max_smiles_len: int = 192,
         max_num_reactions: int = 5,
-        init_stack_weighted_ratio: float = 0.0,
         virtual_length: int = 65536,
+        init_stack_weighted_ratio: float = 0.0,
     ) -> None:
         super().__init__()
         self._reaction_matrix = reaction_matrix
         self._max_num_atoms = max_num_atoms
-        self._max_smiles_len = max_smiles_len
         self._max_num_reactions = max_num_reactions
+        self._virtual_length = virtual_length
         self._fpindex = fpindex
         self._init_stack_weighted_ratio = init_stack_weighted_ratio
-        self._virtual_length = virtual_length
 
     def __len__(self) -> int:
         return self._virtual_length
 
-    def __iter__(self):
-        while True:
-            for stack in create_stack_step_by_step(
-                self._reaction_matrix,
-                max_num_reactions=self._max_num_reactions,
-                max_num_atoms=self._max_num_atoms,
-                init_stack_weighted_ratio=self._init_stack_weighted_ratio,
-            ):
-                mol_seq_full = stack.mols
-                mol_idx_seq_full = stack.get_mol_idx_seq()
-                rxn_seq_full = stack.rxns
-                rxn_idx_seq_full = stack.get_rxn_idx_seq()
-                product = random.choice(list(stack.get_top()))
-                data = create_data(
-                    product=product,
-                    mol_seq=mol_seq_full,
-                    mol_idx_seq=mol_idx_seq_full,
-                    rxn_seq=rxn_seq_full,
-                    rxn_idx_seq=rxn_idx_seq_full,
-                    fpindex=self._fpindex,
+    def __getitem__(self, _: int):
+        stack = create_stack(
+            self._reaction_matrix,
+            max_num_reactions=self._max_num_reactions,
+            max_num_atoms=self._max_num_atoms,
+            init_stack_weighted_ratio=self._init_stack_weighted_ratio,
+        )
+
+        data_list: list[ProjectionData] = []
+        mol_seq_full = stack.mols
+        mol_idx_seq_full = stack.get_mol_idx_seq()
+        rxn_seq_full = stack.rxns
+        rxn_idx_seq_full = stack.get_rxn_idx_seq()
+        data_list.append(
+            create_data(
+                product=mol_seq_full[0],
+                mol_seq=mol_seq_full[:1],
+                mol_idx_seq=mol_idx_seq_full[:1],
+                rxn_seq=rxn_seq_full[:1],
+                rxn_idx_seq=rxn_idx_seq_full[:1],
+                fpindex=self._fpindex,
+            )
+        )
+        for i in range(1, len(mol_seq_full)):
+            if rxn_idx_seq_full[i] is not None:
+                data_list.append(
+                    create_data(
+                        product=mol_seq_full[i],
+                        mol_seq=mol_seq_full[: i + 1],
+                        mol_idx_seq=mol_idx_seq_full[: i + 1],
+                        rxn_seq=rxn_seq_full[: i + 1],
+                        rxn_idx_seq=rxn_idx_seq_full[: i + 1],
+                        fpindex=self._fpindex,
+                    )
                 )
-                data["smiles"] = data["smiles"][: self._max_smiles_len]
-                yield data
+
+        return data_list
 
 
 class ProjectionDataModule(pl.LightningDataModule):
@@ -108,11 +124,16 @@ class ProjectionDataModule(pl.LightningDataModule):
         config,
         batch_size: int,
         num_workers: int = 4,
+        max_datapoints_per_sample: int | None = 4,
         **kwargs,
     ) -> None:
         super().__init__()
         self.config = config
         self.batch_size = batch_size
+        if max_datapoints_per_sample is not None:
+            self.max_datapoints: int | None = batch_size * max_datapoints_per_sample
+        else:
+            self.max_datapoints = None
         self.num_workers = num_workers
         self.dataset_options = kwargs
 
@@ -140,14 +161,14 @@ class ProjectionDataModule(pl.LightningDataModule):
 
         self.train_dataset = ProjectionDataset(
             reaction_matrix=rxn_matrix,
+            virtual_length=self.config.train.val_freq * self.batch_size * trainer.world_size,
             fpindex=fpindex,
-            virtual_length=self.config.train.val_freq * self.batch_size,
             **self.dataset_options,
         )
         self.val_dataset = ProjectionDataset(
             reaction_matrix=rxn_matrix,
-            fpindex=fpindex,
             virtual_length=self.batch_size,
+            fpindex=fpindex,
             **self.dataset_options,
         )
 
@@ -155,9 +176,10 @@ class ProjectionDataModule(pl.LightningDataModule):
         return DataLoader(
             self.train_dataset,
             batch_size=self.batch_size,
+            shuffle=True,
             num_workers=self.num_workers,
             drop_last=True,
-            collate_fn=Collater(),
+            collate_fn=Collater(max_datapoints=self.max_datapoints),
             worker_init_fn=worker_init_fn,
             persistent_workers=True,
         )
@@ -166,8 +188,8 @@ class ProjectionDataModule(pl.LightningDataModule):
         return DataLoader(
             self.val_dataset,
             batch_size=self.batch_size,
-            num_workers=1,
-            collate_fn=Collater(),
+            num_workers=self.num_workers,
+            collate_fn=Collater(max_datapoints=self.max_datapoints),
             worker_init_fn=worker_init_fn,
             persistent_workers=True,
         )
