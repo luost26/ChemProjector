@@ -21,6 +21,26 @@ from .output_head import (
 
 
 @dataclasses.dataclass
+class _ReactantItem:
+    reactant: Molecule
+    index: int
+    score: float
+
+    def __iter__(self):
+        return iter([self.reactant, self.index, self.score])
+
+
+@dataclasses.dataclass
+class _ReactionItem:
+    reaction: Reaction
+    index: int
+    score: float
+
+    def __iter__(self):
+        return iter([self.reaction, self.index, self.score])
+
+
+@dataclasses.dataclass
 class PredictResult:
     token_logits: torch.Tensor  # (bsz, n_types)
     reaction_logits: torch.Tensor  # (bsz, n_reactions)
@@ -33,31 +53,46 @@ class PredictResult:
     def best_token(self) -> list[TokenType]:
         return [TokenType(t) for t in self.token_logits.argmax(dim=-1).detach().cpu().tolist()]  # (bsz,)
 
-    def top_reactions(self, topk: int, rxn_matrix: ReactantReactionMatrix) -> list[list[tuple[Reaction, float]]]:
+    def top_reactions(self, topk: int, rxn_matrix: ReactantReactionMatrix) -> list[list[_ReactionItem]]:
         topk = min(topk, self.reaction_logits.size(-1))
         logit, index = self.reaction_logits.topk(topk, dim=-1, largest=True)
         bsz = logit.size(0)
-        out: list[list[tuple[Reaction, float]]] = []
+        out: list[list[_ReactionItem]] = []
         for i in range(bsz):
-            out_i: list[tuple[Reaction, float]] = []
+            out_i: list[_ReactionItem] = []
             for j in range(topk):
-                out_i.append((rxn_matrix.reactions[int(index[i, j].item())], float(logit[i, j].item())))
+                idx = int(index[i, j].item())
+                out_i.append(
+                    _ReactionItem(
+                        reaction=rxn_matrix.reactions[idx],
+                        index=idx,
+                        score=float(logit[i, j].item()),
+                    )
+                )
             out.append(out_i)
         return out
 
-    def top_reactants(self, topk: int) -> list[list[tuple[Molecule, float]]]:
+    def top_reactants(self, topk: int) -> list[list[_ReactantItem]]:
         bsz = self.retrieved_reactants.reactants.shape[0]
         score_all = 1.0 / (self.retrieved_reactants.distance.reshape(bsz, -1) + 0.1)
+        index_all = self.retrieved_reactants.indices.reshape(bsz, -1)
         mols = self.retrieved_reactants.reactants.reshape(bsz, -1)
 
         topk = min(topk, mols.shape[-1])
         best_index = (-score_all).argsort(axis=-1)
 
-        out: list[list[tuple[Molecule, float]]] = []
+        out: list[list[_ReactantItem]] = []
         for i in range(bsz):
-            out_i: list[tuple[Molecule, float]] = []
+            out_i: list[_ReactantItem] = []
             for j in range(topk):
-                out_i.append((mols[i, best_index[i, j]], score_all[i, best_index[i, j]]))
+                idx = int(best_index[i, j])
+                out_i.append(
+                    _ReactantItem(
+                        reactant=mols[i, idx],
+                        index=index_all[i, idx],
+                        score=score_all[i, idx],
+                    )
+                )
             out.append(out_i)
         return out
 

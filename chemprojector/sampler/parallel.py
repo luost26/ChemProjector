@@ -14,7 +14,7 @@ from tqdm.auto import tqdm
 from chemprojector.chem.fpindex import FingerprintIndex
 from chemprojector.chem.matrix import ReactantReactionMatrix
 from chemprojector.chem.mol import FingerprintOption, Molecule
-from chemprojector.models.old.projector import Projector
+from chemprojector.models.chemprojector import ChemProjector
 
 from .state_pool import StatePool, TimeLimit
 
@@ -60,7 +60,7 @@ class Worker(mp.Process):
 
         ckpt = torch.load(self._model_path, map_location="cpu")
         config = OmegaConf.create(ckpt["hyper_parameters"]["config"])
-        model = Projector(config.model).to("cuda")
+        model = ChemProjector(config.model).to("cuda")
         model.load_state_dict({k[6:]: v for k, v in ckpt["state_dict"].items()})
         model.eval()
         self._model = model
