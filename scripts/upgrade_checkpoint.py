@@ -21,7 +21,7 @@ prefix_mapping: dict[str, str] = {
 
 
 @click.command()
-@click.option("--v2-cfg", type=OmegaConf.load, default="configs/default.yml")
+@click.option("--v2-cfg", type=OmegaConf.load, required=True)
 @click.option("--v1-ckpt", type=click.Path(exists=True), required=True)
 @click.option("--v2-ckpt", type=click.Path(exists=False), required=True)
 def main(v2_cfg, v1_ckpt, v2_ckpt):
