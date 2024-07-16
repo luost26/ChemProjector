@@ -24,7 +24,7 @@ torch.set_float32_matmul_precision("medium")
 @click.argument("config_path", type=click.Path(exists=True))
 @click.option("--seed", type=int, default=42)
 @click.option("--debug", is_flag=True)
-@click.option("--batch-size", "-b", type=int, default=64)
+@click.option("--batch-size", "-b", type=int, default=256)
 @click.option("--num-workers", type=int, default=4)
 @click.option("--devices", type=int, default=4)
 @click.option("--num-nodes", type=int, default=int(os.environ.get("NUM_NODES", 1)))
@@ -43,6 +43,10 @@ def main(
     log_dir: str,
     resume: str | None,
 ):
+    if batch_size % devices != 0:
+        raise ValueError("Batch size must be divisible by the number of devices")
+    batch_size_per_process = batch_size // devices
+
     os.makedirs(log_dir, exist_ok=True)
     pl.seed_everything(seed)
 
@@ -56,7 +60,7 @@ def main(
     # Dataloaders
     datamodule = ProjectionDataModule(
         config,
-        batch_size=batch_size,
+        batch_size=batch_size_per_process,
         num_workers=num_workers,
         **config.data,
     )
