@@ -18,7 +18,7 @@ def _input_mols_option(p):
     "--model-path",
     "-m",
     type=click.Path(exists=True, path_type=pathlib.Path),
-    default="data/trained_weights/default.ckpt",
+    required=True,
 )
 @click.option(
     "--rxn-matrix-path",
