@@ -32,7 +32,12 @@ def _input_mols_option(p):
 )
 @click.option("--search-width", type=int, default=24)
 @click.option("--exhaustiveness", type=int, default=64)
-@click.option("--num-gpus", type=int, default=4)
+@click.option(
+    "--num-gpus",
+    type=int,
+    default=-1,
+    help="Number of GPUs to use. Default (-1) is to use all available GPUs.",
+)
 @click.option("--num-workers-per-gpu", type=int, default=1)
 @click.option("--task-qsize", type=int, default=0)
 @click.option("--result-qsize", type=int, default=0)
