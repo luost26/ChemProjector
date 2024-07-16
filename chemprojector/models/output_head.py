@@ -12,14 +12,22 @@ from chemprojector.chem.fpindex import FingerprintIndex
 from chemprojector.chem.mol import Molecule
 
 
-def _SimpleMLP(dim_in: int, dim_out: int, dim_hidden: int) -> Callable[[torch.Tensor], torch.Tensor]:
-    return nn.Sequential(
+def _SimpleMLP(
+    dim_in: int,
+    dim_out: int,
+    dim_hidden: int,
+    num_layers: int = 3,
+) -> Callable[[torch.Tensor], torch.Tensor]:
+    num_intermediate = num_layers - 2
+    layers = [
         nn.Linear(dim_in, dim_hidden),
         nn.ReLU(),
-        nn.Linear(dim_hidden, dim_hidden),
-        nn.ReLU(),
-        nn.Linear(dim_hidden, dim_out),
-    )
+    ]
+    for _ in range(num_intermediate):
+        layers.append(nn.Linear(dim_hidden, dim_hidden))
+        layers.append(nn.ReLU())
+    layers.append(nn.Linear(dim_hidden, dim_out))
+    return nn.Sequential(*layers)
 
 
 class ClassifierHead(nn.Module):
@@ -125,12 +133,19 @@ class BaseFingerprintHead(nn.Module, abc.ABC):
 
 
 class MultiFingerprintHead(BaseFingerprintHead):
-    def __init__(self, d_model: int, num_out_fingerprints: int, fingerprint_dim: int, dim_hidden: int):
+    def __init__(
+        self,
+        d_model: int,
+        num_out_fingerprints: int,
+        fingerprint_dim: int,
+        dim_hidden: int,
+        num_layers: int = 3,
+    ):
         super().__init__(fingerprint_dim=fingerprint_dim)
         self.d_model = d_model
         self.num_out_fingerprints = num_out_fingerprints
         d_out = fingerprint_dim * num_out_fingerprints
-        self.mlp = _SimpleMLP(d_model, d_out, dim_hidden)
+        self.mlp = _SimpleMLP(d_model, d_out, dim_hidden, num_layers=num_layers)
 
     def predict(self, h: torch.Tensor, **kwargs) -> torch.Tensor:
         y_fingerprint = torch.sigmoid(self.mlp(h))
