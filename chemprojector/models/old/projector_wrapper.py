@@ -17,6 +17,7 @@ from .projector import Projector, draw_generation_results
 class ProjectorWrapper(pl.LightningModule):
     def __init__(self, config, args: dict | None = None):
         super().__init__()
+        config = OmegaConf.create(config)
         self.save_hyperparameters(
             {
                 "config": OmegaConf.to_container(config),
