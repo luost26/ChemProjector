@@ -23,6 +23,7 @@ class ProjectionData(TypedDict, total=False):
     atoms: torch.Tensor
     bonds: torch.Tensor
     atom_padding_mask: torch.Tensor
+    smiles: torch.Tensor
     # Decoder
     token_types: torch.Tensor
     rxn_indices: torch.Tensor
@@ -38,6 +39,7 @@ class ProjectionBatch(TypedDict, total=False):
     atoms: torch.Tensor
     bonds: torch.Tensor
     atom_padding_mask: torch.Tensor
+    smiles: torch.Tensor
     # Decoder
     token_types: torch.Tensor
     rxn_indices: torch.Tensor
@@ -106,6 +108,7 @@ def create_data(
         "rxn_seq": rxn_seq,
         "atoms": atom_f,
         "bonds": bond_f,
+        "smiles": product.tokenize_csmiles(),
         "atom_padding_mask": torch.zeros([atom_f.size(0)], dtype=torch.bool),
         "token_types": stack_feats["token_types"],
         "rxn_indices": stack_feats["rxn_indices"],

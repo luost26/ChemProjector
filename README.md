@@ -57,8 +57,9 @@ You can download the trained weights from [here](https://drive.google.com/drive/
 You can create a list of SMILES strings in CSV format (example: `data/example.csv`) and run the following command to project them into the synthesizable chemical space.
 ```bash
 python sample.py \
+    --model-path data/trained_weights/original_default.ckpt \
     --input data/example.csv \
-    --output results/example.csv \
+    --output results/example.csv
 ```
 
 ### Model Evaluation

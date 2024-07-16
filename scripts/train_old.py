@@ -7,7 +7,7 @@ from omegaconf import OmegaConf
 from pytorch_lightning import callbacks, loggers, strategies
 
 from chemprojector.data.projection_dataset import ProjectionDataModule
-from chemprojector.models.wrapper import ChemProjectorWrapper
+from chemprojector.models.old.projector_wrapper import ProjectorWrapper
 from chemprojector.utils.misc import (
     get_config_name,
     get_experiment_name,
@@ -31,6 +31,7 @@ torch.set_float32_matmul_precision("medium")
 @click.option("--num-sanity-val-steps", type=int, default=1)
 @click.option("--log-dir", type=click.Path(dir_okay=True, file_okay=False), default="./logs")
 @click.option("--resume", type=click.Path(exists=True, dir_okay=False), default=None)
+@click.option("--no-visualize", is_flag=True)
 def main(
     config_path: str,
     seed: int,
@@ -42,6 +43,7 @@ def main(
     num_sanity_val_steps: int,
     log_dir: str,
     resume: str | None,
+    no_visualize: bool,
 ):
     os.makedirs(log_dir, exist_ok=True)
     pl.seed_everything(seed)
@@ -62,7 +64,12 @@ def main(
     )
 
     # Model
-    model = ChemProjectorWrapper(config)
+    model = ProjectorWrapper(
+        config,
+        args={
+            "visualize": not no_visualize,
+        },
+    )
 
     # Train
     trainer = pl.Trainer(
