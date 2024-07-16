@@ -22,13 +22,44 @@ from .output_head import (
 
 @dataclasses.dataclass
 class PredictResult:
-    token_logits: torch.Tensor
-    reaction_logits: torch.Tensor
+    token_logits: torch.Tensor  # (bsz, n_types)
+    reaction_logits: torch.Tensor  # (bsz, n_reactions)
     retrieved_reactants: ReactantRetrievalResult
 
     def to(self, device: torch.device):
         self.__class__(self.token_logits.to(device), self.reaction_logits.to(device), self.retrieved_reactants)
         return self
+
+    def best_token(self) -> list[TokenType]:
+        return [TokenType(t) for t in self.token_logits.argmax(dim=-1).detach().cpu().tolist()]  # (bsz,)
+
+    def top_reactions(self, topk: int, rxn_matrix: ReactantReactionMatrix) -> list[list[tuple[Reaction, float]]]:
+        topk = min(topk, self.reaction_logits.size(-1))
+        logit, index = self.reaction_logits.topk(topk, dim=-1, largest=True)
+        bsz = logit.size(0)
+        out: list[list[tuple[Reaction, float]]] = []
+        for i in range(bsz):
+            out_i: list[tuple[Reaction, float]] = []
+            for j in range(topk):
+                out_i.append((rxn_matrix.reactions[int(index[i, j].item())], float(logit[i, j].item())))
+            out.append(out_i)
+        return out
+
+    def top_reactants(self, topk: int) -> list[list[tuple[Molecule, float]]]:
+        bsz = self.retrieved_reactants.reactants.shape[0]
+        score_all = 1.0 / (self.retrieved_reactants.distance.reshape(bsz, -1) + 0.1)
+        mols = self.retrieved_reactants.reactants.reshape(bsz, -1)
+
+        topk = min(topk, mols.shape[-1])
+        best_index = (-score_all).argsort(axis=-1)
+
+        out: list[list[tuple[Molecule, float]]] = []
+        for i in range(bsz):
+            out_i: list[tuple[Molecule, float]] = []
+            for j in range(topk):
+                out_i.append((mols[i, best_index[i, j]], score_all[i, best_index[i, j]]))
+            out.append(out_i)
+        return out
 
 
 @dataclasses.dataclass

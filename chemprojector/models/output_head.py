@@ -53,6 +53,7 @@ class ReactantRetrievalResult:
     reactants: np.ndarray
     fingerprint_predicted: np.ndarray
     fingerprint_retrieved: np.ndarray
+    distance: np.ndarray
 
 
 class BaseFingerprintHead(nn.Module, abc.ABC):
@@ -87,21 +88,25 @@ class BaseFingerprintHead(nn.Module, abc.ABC):
         fp_dim = fp.shape[-1]
         out = np.empty(list(fp.shape[:-1]) + [topk], dtype=Molecule)
         out_fp = np.empty(list(fp.shape[:-1]) + [topk, fp_dim], dtype=np.float32)
+        out_dist = np.empty(list(fp.shape[:-1]) + [topk], dtype=np.float32)
 
         fp_flat = fp.view(-1, fp_dim)
         out_flat = out.reshape(-1, topk)
         out_fp_flat = out_fp.reshape(-1, topk, fp_dim)
+        out_dist_flat = out_dist.reshape(-1, topk)
 
         query_res = fpindex.query_cuda(q=fp_flat, k=topk)
         for i, q_res_subl in enumerate(query_res):
             for j, q_res in enumerate(q_res_subl):
                 out_flat[i, j] = q_res.molecule
                 out_fp_flat[i, j] = q_res.fingerprint
+                out_dist_flat[i, j] = q_res.distance
 
         return ReactantRetrievalResult(
             reactants=out,
             fingerprint_predicted=fp.detach().cpu().numpy(),
             fingerprint_retrieved=out_fp,
+            distance=out_dist,
         )
 
     @abc.abstractmethod
