@@ -140,10 +140,12 @@ class MultiFingerprintHead(BaseFingerprintHead):
         fingerprint_dim: int,
         dim_hidden: int,
         num_layers: int = 3,
+        warmup_prob: float = 1.0,
     ):
         super().__init__(fingerprint_dim=fingerprint_dim)
         self.d_model = d_model
         self.num_out_fingerprints = num_out_fingerprints
+        self.warmup_prob = warmup_prob
         d_out = fingerprint_dim * num_out_fingerprints
         self.mlp = _SimpleMLP(d_model, d_out, dim_hidden, num_layers=num_layers)
 
@@ -175,7 +177,7 @@ class MultiFingerprintHead(BaseFingerprintHead):
         if self.training and warmup:
             loss_fingerprint_avg = loss_fingerprint_all.mean(dim=-1)
             loss_fingerprint = torch.where(
-                torch.rand_like(loss_fingerprint_min) < 0.01,
+                torch.rand_like(loss_fingerprint_min) < self.warmup_prob,
                 loss_fingerprint_avg,
                 loss_fingerprint_min,
             )

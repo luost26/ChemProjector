@@ -45,6 +45,7 @@ model:
     num_out_fingerprints: 4
     fingerprint_dim: ${chem.fp_option.morgan_n_bits}
     dim_hidden: 512
+    warmup_prob: 0.01
 
 train:
   loss_weights:
