@@ -213,7 +213,17 @@ def run_parallel_sampling(
             df_all.append(df)
 
     df_merge = pd.concat(df_all, ignore_index=True)
-    print(df_merge.loc[df_merge.groupby("target").idxmax()["score"]].select_dtypes(include="number").sum() / total)
+    summary = df_merge.loc[df_merge.groupby("target").idxmax()["score"]].select_dtypes(include="number").sum() / total
+    desc = pd.Series(
+        {
+            "score": "Tanimoto similarity",
+            "scf_sim": "Scaffold similarity",
+            "pharm2d_sim": "Gobbi2D Pharmacophore similarity",
+            "rdkit_sim": "RDKit fingerprint similarity",
+            "num_steps": "Average number of synthesis steps",
+        }
+    )
+    print(pd.DataFrame({"result": summary, "description": desc}))
 
     count_success = len(df_merge["target"].unique())
     print(f"Success rate: {count_success}/{total} = {count_success / total:.3f}")
