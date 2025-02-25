@@ -58,7 +58,7 @@ class Worker(mp.Process):
         self._fpindex: FingerprintIndex = pickle.load(open(self._fpindex_path, "rb"))
         self._rxn_matrix: ReactantReactionMatrix = pickle.load(open(self._rxn_matrix_path, "rb"))
 
-        ckpt = torch.load(self._model_path, map_location="cpu")
+        ckpt = torch.load(self._model_path, map_location="cpu", weights_only=False)
         config = OmegaConf.create(ckpt["hyper_parameters"]["config"])
         model = ChemProjector(config.model).to("cuda")
         model.load_state_dict({k[6:]: v for k, v in ckpt["state_dict"].items()})
