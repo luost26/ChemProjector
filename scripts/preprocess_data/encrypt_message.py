@@ -1,6 +1,4 @@
 import pathlib
-import subprocess
-import uuid
 
 import click
 
