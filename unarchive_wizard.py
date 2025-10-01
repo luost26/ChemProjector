@@ -110,7 +110,7 @@ if __name__ == "__main__":
         ),
         print_fn=console.log,
     )
-    console.clear_live()
+    # console.clear_live()
 
     if out is None:
         console.log("[red]Decryption failed.")
