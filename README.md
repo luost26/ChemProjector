@@ -73,7 +73,7 @@ python sample.py \
 
 ### Model Evaluation
 
-#### Bottom-Up Synthesis Planning
+#### Bottom-Up Synthesis Planning (Chemical Space Projection)
 
 | Test set     | Command                                      |
 | ------------ | -------------------------------------------- |
