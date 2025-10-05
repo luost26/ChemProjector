@@ -66,17 +66,12 @@ python sample.py \
 
 #### Bottom-Up Synthesis Planning
 
-Using the test split:
+| Test set     | Command                                      |
+| ------------ | -------------------------------------------- |
+| Test split   | `./scripts/synthesis_planning_test_split.sh` |
+| ChEMBL       | `./scripts/synthesis_planning_chembl.sh`     |
+| Enamine REAL | `./scripts/synthesis_planning_enamine.sh`    |
 
-```bash
-./scripts/synthesis_planning_test_split.sh
-```
-
-or using the ChEMBL dataset:
-
-```bash
-./scripts/synthesis_planning_chembl.sh
-```
 
 #### Structure-Based Drug Design
 
