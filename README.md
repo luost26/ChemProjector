@@ -50,6 +50,15 @@ You may also process the building block data by yourself. Please refer to the `s
 You can download the trained weights from [here](https://drive.google.com/drive/folders/1T9f9MsEAsAjPV8GR0pXimHKCvq97SIzs?usp=drive_link) and put them in the `data/trained_weights` directory.
 
 
+### Summary of Downloads
+
+| Item                                                         | Link                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Preprocessed building blocks and reaction templates (password protected) | https://drive.google.com/file/d/1scui0RZ8oeroDAafnw4jgTi3yKtXxXpe/view?usp=drive_link |
+| Enamine building block US stock catalog (to unzip the password protected preprocessed files) | https://enamine.net/building-blocks/building-blocks-catalog  |
+| Trained weights                                              | https://drive.google.com/drive/folders/1T9f9MsEAsAjPV8GR0pXimHKCvq97SIzs?usp=drive_link |
+
+
 ## Usage
 
 ### Project Molecules
