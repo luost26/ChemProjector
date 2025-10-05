@@ -52,11 +52,11 @@ You can download the trained weights from [here](https://drive.google.com/drive/
 
 ### Summary of Downloads
 
-| Item                                                         | Link                                                         |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| Preprocessed building blocks and reaction templates (password protected) | https://drive.google.com/file/d/1scui0RZ8oeroDAafnw4jgTi3yKtXxXpe/view?usp=drive_link |
-| Enamine building block US stock catalog (to unzip the password protected preprocessed files) | https://enamine.net/building-blocks/building-blocks-catalog  |
-| Trained weights                                              | https://drive.google.com/drive/folders/1T9f9MsEAsAjPV8GR0pXimHKCvq97SIzs?usp=drive_link |
+| Item                                                         | Link                                                         | Destination                                                  |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Preprocessed building blocks and reaction templates (password protected) | https://drive.google.com/file/d/1scui0RZ8oeroDAafnw4jgTi3yKtXxXpe/view?usp=drive_link | `data/processed.zip`                                         |
+| Enamine building block US stock catalog (to unzip the password protected preprocessed files) | https://enamine.net/building-blocks/building-blocks-catalog  | `data/data/Enamine_*.sdf`                                    |
+| Trained weights                                              | https://drive.google.com/drive/folders/1T9f9MsEAsAjPV8GR0pXimHKCvq97SIzs?usp=drive_link | `data/trained_weights/original_default.ckpt`, `data/trained_weights/original_split.ckpt` |
 
 
 ## Usage
