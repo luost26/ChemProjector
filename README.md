@@ -10,7 +10,7 @@
 ## ⚠️ Update
 
 **ChemProjector and its derivatives (e.g. SynFormer) have been deprecated**. Please refer to our latest model **PrexSyn**: Efficient and Programmable Exploration of Synthesizable Chemical Space:
-- **Code**: https://github.com/luost26/prexsyn
+- **Code**: https://github.com/luost26/PrexSyn
 - **Paper**: https://arxiv.org/abs/2512.00384
 - **Documentation**: https://prexsyn.readthedocs.io/
 
